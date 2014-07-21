@@ -39,11 +39,14 @@ OFFICIAL_MBED_LIBRARY_BUILD = (
     ('LPC11U35_401', ('ARM', 'uARM','GCC_ARM','GCC_CR')),
     ('LPC11U35_501', ('ARM', 'uARM','GCC_ARM','GCC_CR')),
     ('LPC1549',      ('uARM','GCC_CR')),
+    ('XADOW_M0',     ('ARM', 'uARM','GCC_ARM','GCC_CR')),
+    ('ARCH_GPRS',    ('ARM', 'uARM', 'GCC_ARM', 'GCC_CR')),
 
     ('KL05Z',        ('ARM', 'uARM', 'GCC_ARM')),
     ('KL25Z',        ('ARM', 'GCC_ARM')),
     ('KL46Z',        ('ARM', 'GCC_ARM')),
     ('K64F',         ('ARM', 'GCC_ARM')),
+    ('K20D50M',      ('ARM', 'GCC_ARM')),
 
     ('NUCLEO_F030R8', ('ARM', 'uARM')),
     ('NUCLEO_F072RB', ('ARM', 'uARM')),
@@ -55,9 +58,12 @@ OFFICIAL_MBED_LIBRARY_BUILD = (
     ('NUCLEO_L053R8', ('ARM', 'uARM')),
     ('NUCLEO_L152RE', ('ARM', 'uARM')),
 
-    ('NRF51822', ('ARM', )),
+    ('NRF51822',     ('ARM', )),
+    ('HRM1017',      ('ARM', )),
+    ('ARCH_BLE',     ('ARM', )),
+    ('RBLAB_NRF51822', ('ARM', )),
 
-    ('LPC11U68', ('uARM','GCC_ARM','GCC_CR')),
+    ('LPC11U68',     ('uARM','GCC_ARM','GCC_CR')),
 )
 
 
@@ -73,7 +79,7 @@ if __name__ == '__main__':
     successes = []
     for target_name, toolchain_list in OFFICIAL_MBED_LIBRARY_BUILD:
         if options.official_only:
-            toolchains = (getattr(TARGET_MAP[target_name], 'ONLINE_TOOLCHAIN', 'ARM'),)
+            toolchains = (getattr(TARGET_MAP[target_name], 'default_toolchain', 'ARM'),)
         else:
             toolchains = toolchain_list
         for toolchain in toolchains:
