@@ -29,7 +29,7 @@
 #       pragma import(__use_full_stdio)
 #   endif
 
-#elif defined(__ICCARM__)
+#elif defined(__ICCARM__) 
 #   include <yfuns.h>
 #   define PREFIX(x)        _##x
 #   define OPEN_MAX         16
@@ -37,6 +37,16 @@
 #   define STDIN_FILENO     0
 #   define STDOUT_FILENO    1
 #   define STDERR_FILENO    2
+
+#elif defined(__CROSSWORKS_ARM)
+
+#   define PREFIX(x)        x
+#   define OPEN_MAX         16
+
+#   define STDIN_FILENO     0
+#   define STDOUT_FILENO    1
+#   define STDERR_FILENO    2
+
 
 #else
 #   include <sys/stat.h>
@@ -300,7 +310,7 @@ extern "C" long PREFIX(_flen)(FILEHANDLE fh) {
 #endif
 
 
-#if !defined(__ARMCC_VERSION) && !defined(__ICCARM__)
+#if !defined(__ARMCC_VERSION) && !defined(__ICCARM__) && !defined(__CROSSWORKS_ARM)
 extern "C" int _fstat(int fd, struct stat *st) {
     if ((STDOUT_FILENO == fd) || (STDERR_FILENO == fd) || (STDIN_FILENO == fd)) {
         st->st_mode = S_IFCHR;
@@ -325,9 +335,11 @@ extern "C" int rename(const char *oldname, const char *newname) {
     return -1;
 }
 
+#if 0
 extern "C" char *tmpnam(char *s) {
     return NULL;
 }
+#endif
 
 extern "C" FILE *tmpfile() {
     return NULL;
