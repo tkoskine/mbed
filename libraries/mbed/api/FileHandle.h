@@ -20,12 +20,12 @@ typedef int FILEHANDLE;
 
 #include <stdio.h>
 
-#if defined(__ARMCC_VERSION) || defined(__ICCARM__)
+#if defined(__ARMCC_VERSION) || defined(__ICCARM__) || defined(__CROSSWORKS_ARM)
 typedef int ssize_t;
 typedef long off_t;
 
 #else
-#   include <sys/types.h>
+// #   include <sys/types.h>
 #endif
 
 namespace mbed {
