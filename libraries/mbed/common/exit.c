@@ -19,14 +19,15 @@
 #include <stdio.h>
 #endif
 
-#ifdef TOOLCHAIN_GCC_CW
+#if defined(TOOLCHAIN_GCC_CW)
 // TODO: Ideally, we would like to define directly "_ExitProcess"
 void mbed_exit(int return_code) {
 #else
 void exit(int return_code) {
 #endif
 
-#if DEVICE_STDIO_MESSAGES
+// #if DEVICE_STDIO_MESSAGES
+#if 0
     fflush(stdout);
     fflush(stderr);
 #endif

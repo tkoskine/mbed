@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <__cross_studio_io.h>
 #include "mbed_assert.h"
 #include "device.h"
 
@@ -26,7 +27,7 @@
 void mbed_assert_internal(const char *expr, const char *file, int line)
 {
 #if DEVICE_STDIO_MESSAGES
-    fprintf(stderr, "mbed assertation failed: %s, file: %s, line %d \n", expr, file, line);
+    debug_printf("mbed assertation failed: %s, file: %s, line %d \n", expr, file, line);
 #endif
     mbed_die();
 }

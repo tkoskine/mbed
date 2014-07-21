@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <__cross_studio_io.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "device.h"
@@ -24,10 +25,14 @@
 
 WEAK void error(const char* format, ...) {
 #if DEVICE_STDIO_MESSAGES
+#if 0
     va_list arg;
     va_start(arg, format);
     vfprintf(stderr, format, arg);
     va_end(arg);
+#else
+  debug_printf("error\n");
+#endif
 #endif
     exit(1);
 }
