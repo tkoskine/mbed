@@ -1,0 +1,207 @@
+<!DOCTYPE CrossStudio_Project_File>
+<solution Name="Nucleo_MBED1" target="8" version="2">
+  <project Name="Nucleo_MBED1">
+    <configuration
+      Name="Common"
+      Placement="Flash"
+      Target="STM32F401RE"
+      arm_architecture="v7EM"
+      arm_core_type="Cortex-M4"
+      arm_fpu_type="FPv4-SP-D16"
+      arm_gcc_target="arm-unknown-eabi"
+      arm_linker_heap_size="128"
+      arm_linker_jtag_pad_pre_dr="1"
+      arm_linker_jtag_pad_pre_ir="5"
+      arm_linker_process_stack_size="0"
+      arm_linker_stack_size="256"
+      arm_simulator_memory_simulation_filename="$(TargetsDir)/STM32/STM32SimulatorMemory.dll"
+      arm_simulator_memory_simulation_parameter="STM32F401RE;0x80000;0x18000"
+      arm_target_connect_with_reset="Yes"
+      arm_target_debug_interface_type="ADIv5"
+      arm_target_interface_type="Default"
+      arm_target_loader_applicable_loaders="Flash"
+      arm_target_loader_default_loader="Flash"
+      arm_target_restrict_memory_accesses="Yes"
+      c_user_include_directories="$(TargetsDir)/STM32/include;$(TargetsDir)/CMSIS_3/CMSIS/Include;libraries/mbed/api;libraries/mbed/hal;libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE;libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/"
+      linker_memory_map_file="$(TargetsDir)/STM32/STM32F401RE_MemoryMap.xml"
+      linker_section_placement_file="$(StudioDir)/targets/Cortex_M/flash_placement.xml"
+      project_directory=""
+      project_type="Executable"
+      property_groups_file_path="$(TargetsDir)/STM32/propertyGroups.xml"
+      target_get_partname_script="GetPartName()"
+      target_match_partname_script="MatchPartName(&quot;$(Target)&quot;)"
+      target_reset_script="Reset()"
+      target_trace_initialize_script="EnableTrace(&quot;$(TraceInterfaceType)&quot;)" />
+    <configuration
+      Name="Flash"
+      arm_target_flash_loader_file_path="$(TargetsDir)/STM32/Release/STM32F2xx_Loader_rpc.elf"
+      arm_target_flash_loader_type="LIBMEM RPC Loader"
+      arm_target_loader_can_erase_all="Yes"
+      arm_target_loader_can_lock_all="No"
+      arm_target_loader_can_lock_range="No"
+      arm_target_loader_can_unlock_all="No"
+      arm_target_loader_can_unlock_range="No"
+      target_reset_script="FLASHReset()" />
+    <folder Name="Source Files">
+      <configuration Name="Common" filter="c;cpp;cxx;cc;h;s;asm;inc" />
+      <file file_name="main.cpp">
+        <configuration Name="Common" build_quietly="No" />
+      </file>
+      <file file_name="thumb_custom_ctr0.s">
+        <configuration Name="THUMB Debug" build_exclude_from_build="Yes" />
+      </file>
+    </folder>
+    <folder Name="System Files">
+      <file file_name="$(StudioDir)/source/thumb_crt0.s">
+        <configuration Name="THUMB Debug" build_exclude_from_build="No" />
+      </file>
+      <file file_name="$(TargetsDir)/STM32/STM32_Startup.s">
+        <configuration Name="THUMB Debug" build_exclude_from_build="No" />
+      </file>
+      <file file_name="$(TargetsDir)/STM32/STM32_Target.js">
+        <configuration Name="Common" file_type="Reset Script" />
+      </file>
+    </folder>
+    <folder Name="mbed">
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/analogin_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/gpio_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/gpio_irq_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/i2c_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/mbed_overrides.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/pinmap.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/port_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/pwmout_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/rtc_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/serial_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/sleep.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/spi_api.c" />
+      <file file_name="libraries/mbed/targets/hal/TARGET_STM/TARGET_NUCLEO_F401RE/us_ticker.c" />
+      <file file_name="libraries/mbed/common/assert.c" />
+      <file file_name="libraries/mbed/common/board.c" />
+      <file file_name="libraries/mbed/common/BusIn.cpp" />
+      <file file_name="libraries/mbed/common/BusInOut.cpp" />
+      <file file_name="libraries/mbed/common/BusOut.cpp" />
+      <file file_name="libraries/mbed/common/CallChain.cpp" />
+      <file file_name="libraries/mbed/common/CAN.cpp" />
+      <file file_name="libraries/mbed/common/error.c" />
+      <file file_name="libraries/mbed/common/Ethernet.cpp" />
+      <file file_name="libraries/mbed/common/exit.c">
+        <configuration Name="THUMB Debug" build_exclude_from_build="Yes" />
+      </file>
+      <file file_name="libraries/mbed/common/FileBase.cpp" />
+      <file file_name="libraries/mbed/common/FileLike.cpp" />
+      <file file_name="libraries/mbed/common/FilePath.cpp" />
+      <file file_name="libraries/mbed/common/FileSystemLike.cpp" />
+      <file file_name="libraries/mbed/common/FunctionPointer.cpp" />
+      <file file_name="libraries/mbed/common/gpio.c" />
+      <file file_name="libraries/mbed/common/I2C.cpp" />
+      <file file_name="libraries/mbed/common/I2CSlave.cpp" />
+      <file file_name="libraries/mbed/common/InterruptIn.cpp" />
+      <file file_name="libraries/mbed/common/InterruptManager.cpp" />
+      <file file_name="libraries/mbed/common/LocalFileSystem.cpp" />
+      <file file_name="libraries/mbed/common/mbed_interface.c" />
+      <file file_name="libraries/mbed/common/pinmap_common.c" />
+      <file file_name="libraries/mbed/common/RawSerial.cpp" />
+      <file file_name="libraries/mbed/common/retarget.cpp" />
+      <file file_name="libraries/mbed/common/rtc_time.c">
+        <configuration Name="THUMB Debug" build_exclude_from_build="Yes" />
+      </file>
+      <file file_name="libraries/mbed/common/semihost_api.c" />
+      <file file_name="libraries/mbed/common/Serial.cpp" />
+      <file file_name="libraries/mbed/common/SerialBase.cpp" />
+      <file file_name="libraries/mbed/common/SPI.cpp" />
+      <file file_name="libraries/mbed/common/SPISlave.cpp" />
+      <file file_name="libraries/mbed/common/Stream.cpp" />
+      <file file_name="libraries/mbed/common/Ticker.cpp" />
+      <file file_name="libraries/mbed/common/Timeout.cpp" />
+      <file file_name="libraries/mbed/common/Timer.cpp" />
+      <file file_name="libraries/mbed/common/TimerEvent.cpp" />
+      <file file_name="libraries/mbed/common/us_ticker_api.c" />
+      <file file_name="libraries/mbed/common/wait_api.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/cmsis_nvic.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/hal_tick.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_adc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_adc_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_can.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_cortex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_crc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_cryp.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_cryp_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_dac.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_dac_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_dcmi.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_dma.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_dma_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_dma2d.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_eth.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_flash.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_flash_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_gpio.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_hash.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_hash_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_hcd.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_i2c.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_i2c_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_i2s.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_i2s_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_irda.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_iwdg.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_ltdc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_nand.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_nor.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_pccard.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_pcd.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_pwr.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_pwr_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_rcc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_rcc_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_rng.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_rtc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_rtc_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_sai.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_sd.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_sdram.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_smartcard.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_spi.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_sram.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_tim.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_tim_ex.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_uart.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_usart.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_hal_wwdg.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_ll_fmc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_ll_fsmc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_ll_sdmmc.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/stm32f4xx_ll_usb.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/system_stm32f4xx.c" />
+      <file file_name="libraries/mbed/targets/cmsis/TARGET_STM/TARGET_NUCLEO_F401RE/TOOLCHAIN_GCC_ARM/startup_STM32F40x.s">
+        <configuration Name="THUMB Debug" build_exclude_from_build="Yes" />
+      </file>
+    </folder>
+  </project>
+  <configuration Name="THUMB Debug" inherited_configurations="THUMB;Debug" />
+  <configuration
+    Name="THUMB"
+    Platform="ARM"
+    arm_instruction_set="Thumb"
+    arm_library_instruction_set="Thumb"
+    c_preprocessor_definitions="__THUMB"
+    hidden="Yes" />
+  <configuration
+    Name="Debug"
+    c_preprocessor_definitions="DEBUG"
+    gcc_debugging_level="Level 3"
+    gcc_optimization_level="None"
+    hidden="Yes" />
+  <configuration
+    Name="THUMB Release"
+    inherited_configurations="THUMB;Release" />
+  <configuration
+    Name="Release"
+    c_preprocessor_definitions="NDEBUG"
+    gcc_debugging_level="Level 1"
+    gcc_optimization_level="Level 1"
+    hidden="Yes" />
+  <configuration Name="Common" c_preprocessor_definitions="VECTORS_IN_RAM" />
+</solution>
