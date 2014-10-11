@@ -237,6 +237,7 @@ extern "C" int PREFIX(_read)(FILEHANDLE fh, unsigned char *buffer, unsigned int 
     if (fh < 3) {
         // only read a character at a time from stdin
 #if DEVICE_SERIAL
+        if (!stdio_uart_inited) init_serial();
         *buffer = serial_getc(&stdio_uart);
 #endif
         n = 1;
@@ -332,7 +333,15 @@ extern "C" int remove(const char *path) {
 }
 
 extern "C" int rename(const char *oldname, const char *newname) {
-    return -1;
+    FilePath fpOld(oldname);
+    FilePath fpNew(newname);
+    FileSystemLike *fsOld = fpOld.fileSystem();
+    FileSystemLike *fsNew = fpNew.fileSystem();
+
+    /* rename only if both files are on the same FS */
+    if (fsOld != fsNew || fsOld == NULL) return -1;
+
+    return fsOld->rename(fpOld.fileName(), fpNew.fileName());
 }
 
 #if 0
@@ -395,7 +404,7 @@ extern "C" int mkdir(const char *path, mode_t mode) {
 
 #if defined(TOOLCHAIN_GCC)
 /* prevents the exception handling name demangling code getting pulled in */
-#include "error.h"
+#include "mbed_error.h"
 namespace __gnu_cxx {
     void __verbose_terminate_handler() {
         error("Exception");

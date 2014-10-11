@@ -24,10 +24,12 @@ class GccArm(Exporter):
 
     TARGETS = [
         'LPC1768',
+        'LPC1549',
         'KL05Z',
         'KL25Z',
         'KL46Z',
         'K64F',
+        'K22F',
         'K20D50M',
         'LPC4088',
         'LPC4330_M4',
@@ -46,6 +48,12 @@ class GccArm(Exporter):
         'LPC2368',
         'LPCCAPPUCCINO',
         'ARCH_BLE',
+        'MTS_GAMBIT',
+        'ARCH_MAX',
+        'NUCLEO_F401RE',
+        'NUCLEO_F411RE',
+        'ARCH_MAX',
+        'DISCO_F429ZI',
     ]
 
     DOT_IN_RELATIVE_PATH = True
