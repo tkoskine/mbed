@@ -30,11 +30,19 @@
  */ 
 #include "cmsis_nvic.h"
 
+extern unsigned long __vectors_ram_start__;
+extern unsigned long __vectors_flash;
+
 #define NVIC_RAM_VECTOR_ADDRESS   (0x20000000)  // Vectors positioned at start of RAM
 #define NVIC_FLASH_VECTOR_ADDRESS (0x08000000)  // Initial vector position in flash
 
+
+
 void NVIC_SetVector(IRQn_Type IRQn, uint32_t vector) {
-    uint32_t *vectors = (uint32_t *)SCB->VTOR;
+
+    // uint32_t *vectors = (uint32_t *)SCB->VTOR;
+    uint32_t *vectors = (uint32_t *)NVIC_RAM_VECTOR_ADDRESS;
+    uint32_t loc;
     uint32_t i;
 
     // Copy and switch to dynamic vectors if the first time called
@@ -46,7 +54,9 @@ void NVIC_SetVector(IRQn_Type IRQn, uint32_t vector) {
         }
         SCB->VTOR = (uint32_t)NVIC_RAM_VECTOR_ADDRESS;
     }
-    vectors[IRQn + NVIC_USER_IRQ_OFFSET] = vector;
+
+    loc = IRQn + NVIC_USER_IRQ_OFFSET;
+    vectors[loc] = vector;
 }
 
 uint32_t NVIC_GetVector(IRQn_Type IRQn) {
