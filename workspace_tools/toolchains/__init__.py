@@ -16,6 +16,7 @@ limitations under the License.
 """
 
 import re
+import sys
 from os import stat, walk
 from copy import copy
 from time import time, sleep
@@ -33,8 +34,9 @@ import workspace_tools.hooks as hooks
 #Disables multiprocessing if set to higher number than the host machine CPUs
 CPU_COUNT_MIN = 1
 
-def print_notify(event):
-    # Default command line notification
+def print_notify(event, silent=False):
+    """ Default command line notification
+    """
     if event['type'] in ['info', 'debug']:
         print event['message']
 
@@ -44,11 +46,12 @@ def print_notify(event):
         print '[%(severity)s] %(file)s@%(line)s: %(message)s' % event
 
     elif event['type'] == 'progress':
-        print '%s: %s' % (event['action'].title(), basename(event['file']))
+        if not silent:
+            print '%s: %s' % (event['action'].title(), basename(event['file']))
 
-
-def print_notify_verbose(event):
-    """ Default command line notification with more verbose mode """
+def print_notify_verbose(event, silent=False):
+    """ Default command line notification with more verbose mode
+    """
     if event['type'] in ['info', 'debug']:
         print_notify(event) # standard handle
 
@@ -107,6 +110,7 @@ class Resources:
 
         # Other files
         self.hex_files = []
+        self.bin_files = []
 
     def add(self, resources):
         self.inc_dirs += resources.inc_dirs
@@ -130,11 +134,12 @@ class Resources:
             self.linker_script = resources.linker_script
 
         self.hex_files += resources.hex_files
+        self.bin_files += resources.bin_files
 
     def relative_to(self, base, dot=False):
         for field in ['inc_dirs', 'headers', 's_sources', 'c_sources',
                       'cpp_sources', 'lib_dirs', 'objects', 'libraries',
-                      'lib_builds', 'lib_refs', 'repo_dirs', 'repo_files', 'hex_files']:
+                      'lib_builds', 'lib_refs', 'repo_dirs', 'repo_files', 'hex_files', 'bin_files']:
             v = [rel_path(f, base, dot) for f in getattr(self, field)]
             setattr(self, field, v)
         if self.linker_script is not None:
@@ -143,7 +148,7 @@ class Resources:
     def win_to_unix(self):
         for field in ['inc_dirs', 'headers', 's_sources', 'c_sources',
                       'cpp_sources', 'lib_dirs', 'objects', 'libraries',
-                      'lib_builds', 'lib_refs', 'repo_dirs', 'repo_files', 'hex_files']:
+                      'lib_builds', 'lib_refs', 'repo_dirs', 'repo_files', 'hex_files', 'bin_files']:
             v = [f.replace('\\', '/') for f in getattr(self, field)]
             setattr(self, field, v)
         if self.linker_script is not None:
@@ -165,6 +170,7 @@ class Resources:
                 ('Libraries', self.libraries),
 
                 ('Hex files', self.hex_files),
+                ('Bin files', self.bin_files),
             ):
             if resources:
                 s.append('%s:\n  ' % label + '\n  '.join(resources))
@@ -193,32 +199,30 @@ class mbedToolchain:
     VERBOSE = True
 
     CORTEX_SYMBOLS = {
-        "Cortex-M3" : ["__CORTEX_M3", "ARM_MATH_CM3"],
         "Cortex-M0" : ["__CORTEX_M0", "ARM_MATH_CM0"],
         "Cortex-M0+": ["__CORTEX_M0PLUS", "ARM_MATH_CM0PLUS"],
+        "Cortex-M1" : ["__CORTEX_M3", "ARM_MATH_CM1"],
+        "Cortex-M3" : ["__CORTEX_M3", "ARM_MATH_CM3"],
         "Cortex-M4" : ["__CORTEX_M4", "ARM_MATH_CM4"],
         "Cortex-M4F" : ["__CORTEX_M4", "ARM_MATH_CM4", "__FPU_PRESENT=1"],
+        "Cortex-M7" : ["__CORTEX_M7", "ARM_MATH_CM7"],
+        "Cortex-M7F" : ["__CORTEX_M7", "ARM_MATH_CM7", "__FPU_PRESENT=1"],
+        "Cortex-A9" : ["__CORTEX_A9", "ARM_MATH_CA9", "__FPU_PRESENT", "__CMSIS_RTOS", "__EVAL", "__MBED_CMSIS_RTOS_CA9"],
     }
 
     GOANNA_FORMAT = "[Goanna] warning [%FILENAME%:%LINENO%] - [%CHECKNAME%(%SEVERITY%)] %MESSAGE%"
     GOANNA_DIAGNOSTIC_PATTERN = re.compile(r'"\[Goanna\] (?P<severity>warning) \[(?P<file>[^:]+):(?P<line>\d+)\] \- (?P<message>.*)"')
 
-    def __init__(self, target, options=None, notify=None, macros=None):
+    def __init__(self, target, options=None, notify=None, macros=None, silent=False):
         self.target = target
         self.name = self.__class__.__name__
         self.hook = hooks.Hook(target, self)
+        self.silent = silent
 
         self.legacy_ignore_dirs = LEGACY_IGNORE_DIRS - set([target.name, LEGACY_TOOLCHAIN_NAMES[self.name]])
 
-        if notify is not None:
-            self.notify = notify
-        else:
-            self.notify = print_notify
-
-        if options is None:
-            self.options = []
-        else:
-            self.options = options
+        self.notify_fun = notify if notify is not None else print_notify
+        self.options = options if options is not None else []
 
         self.macros = macros or []
         self.options.extend(BUILD_OPTIONS)
@@ -238,6 +242,11 @@ class mbedToolchain:
         self.CHROOT = None
 
         self.mp_pool = None
+
+    def notify(self, event):
+        """ Little closure for notify functions
+        """
+        return self.notify_fun(event, self.silent)
 
     def __exit__(self):
         if self.mp_pool is not None:
@@ -369,6 +378,8 @@ class mbedToolchain:
                     resources.lib_dirs.add(root)
 
                 elif ext == self.LINKER_EXT:
+                    if resources.linker_script is not None:
+                        self.info("Warning: Multiple linker scripts detected: %s -> %s" % (resources.linker_script, file_path))
                     resources.linker_script = file_path
 
                 elif ext == '.lib':
@@ -382,6 +393,9 @@ class mbedToolchain:
 
                 elif ext == '.hex':
                     resources.hex_files.append(file_path)
+                
+                elif ext == '.bin':
+                    resources.bin_files.append(file_path)
 
         return resources
 
@@ -505,7 +519,7 @@ class mbedToolchain:
         itr = 0
         while True:
             itr += 1
-            if itr > 6000:
+            if itr > 30000:
                 p.terminate()
                 p.join()
                 raise ToolException("Compile did not finish in 5 minutes")
@@ -619,6 +633,8 @@ class mbedToolchain:
 
     def link_program(self, r, tmp_path, name):
         ext = 'bin'
+        if hasattr(self.target, 'OUTPUT_EXT'):
+            ext = self.target.OUTPUT_EXT
 
         if hasattr(self.target, 'OUTPUT_NAMING'):
             self.var("binary_naming", self.target.OUTPUT_NAMING)
@@ -627,7 +643,6 @@ class mbedToolchain:
                 ext = ext[0:3]
 
         filename = name+'.'+ext
-
         elf = join(tmp_path, name + '.elf')
         bin = join(tmp_path, filename)
 
@@ -642,9 +657,6 @@ class mbedToolchain:
 
         self.var("compile_succeded", True)
         self.var("binary", filename)
-
-        if hasattr(self.target, 'OUTPUT_EXT'):
-            bin = bin.replace('.bin', self.target.OUTPUT_EXT)
 
         return bin
 
@@ -698,7 +710,6 @@ class mbedToolchain:
 
     def var(self, key, value):
         self.notify({'type': 'var', 'key': key, 'val': value})
-
 
 from workspace_tools.settings import ARM_BIN
 from workspace_tools.settings import GCC_ARM_PATH, GCC_CR_PATH, GCC_CS_PATH, CW_EWL_PATH, CW_GCC_PATH

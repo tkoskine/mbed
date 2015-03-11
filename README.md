@@ -33,6 +33,7 @@ NXP:
 * LPC810 (Cortex-M0+)
 * [LPC812](http://developer.mbed.org/platforms/NXP-LPC800-MAX/) (Cortex-M0+)
 * [EA LPC4088](http://developer.mbed.org/platforms/EA-LPC4088/) (Cortex-M4F)
+* [EA LPC4088 DM](http://developer.mbed.org/platforms/EA-LPC4088-Display-Module/) (Cortex-M4F)
 * LPC4330 (Cortex-M4F + Cortex-M0)
 * [LPC1347](http://developer.mbed.org/platforms/DipCortex-M3/) (Cortex-M3)
 * [LPC1114](http://developer.mbed.org/platforms/LPC1114FN28/) (Cortex-M0)
@@ -50,6 +51,7 @@ NXP:
 Freescale:
 * [FRDM-KL05Z](https://developer.mbed.org/platforms/FRDM-KL05Z/) (Cortex-M0+)
 * [FRDM-KL25Z](http://developer.mbed.org/platforms/KL25Z/) (Cortex-M0+)
+* FRDM-KL43Z (Cortex-M0+)
 * [FRDM-KL46Z](https://developer.mbed.org/platforms/FRDM-KL46Z/) (Cortex-M0+)
 * [FRDM-K20D50M](https://developer.mbed.org/platforms/FRDM-K20D50M/) (Cortex-M4)
 * [FRDM-K22F](https://developer.mbed.org/platforms/FRDM-K22F/) (Cortex-M4F)
@@ -72,12 +74,18 @@ STMicroelectronics:
 * STM32F3-Discovery (Cortex-M4F)
 * STM32F4-Discovery (Cortex-M4F)
 * STM32F429-Discovery (Cortex-M4F)
+* STM32L0-Discovery (Cortex-M0+)
 * [Arch Max](https://developer.mbed.org/platforms/Seeed-Arch-Max/) (Cortex-M4F)
 
 
 Nordic:
 * [nRF51822-mKIT](https://developer.mbed.org/platforms/Nordic-nRF51822/) (Cortex-M0)
 * [Arch BLE](https://developer.mbed.org/platforms/Seeed-Arch-BLE/) (Cortex-M0)
+
+Renesas:
+* [RZ-A1H](http://developer.mbed.org/platforms/Renesas-GR-PEACH/) (Cortex-A9)
+
+
 Supported Toolchains and IDEs
 -----------------------------
 * GCC ARM: [GNU Tools for ARM Embedded Processors](https://launchpad.net/gcc-arm-embedded/4.7/4.7-2012-q4-major)
@@ -85,8 +93,8 @@ Supported Toolchains and IDEs
 * IAR: [IAR Embedded Workbench](http://www.iar.com/en/Products/IAR-Embedded-Workbench/ARM/)
 * GCC code_red: [Red Suite](http://www.code-red-tech.com/)
 * GCC CodeSourcery: [Sourcery CodeBench](http://www.mentor.com/embedded-software/codesourcery)
-* Em::Blocks: [EmBlocks](http://www.emblocks.org/web/)
-* CooCox: [CoIDE](http://www.coocox.org/)
+* GCC ARM: [Em::Blocks](http://www.emblocks.org/web/)
+* GCC ARM: [CooCox CoIDE](http://www.coocox.org/)
 
 API Documentation
 -----------------

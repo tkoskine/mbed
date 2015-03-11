@@ -20,10 +20,8 @@ import sys
 import uuid
 import socket
 from sys import stdout
-from time import time
-from host_test import DefaultTest
 
-class TCPEchoServerTest(DefaultTest):
+class TCPEchoServerTest():
     ECHO_SERVER_ADDRESS = ""
     ECHO_PORT = 0
     ECHO_LOOPs = 100
@@ -32,21 +30,18 @@ class TCPEchoServerTest(DefaultTest):
     PATTERN_SERVER_IP = "Server IP Address is (\d+).(\d+).(\d+).(\d+):(\d+)"
     re_detect_server_ip = re.compile(PATTERN_SERVER_IP)
 
-    def run(self):
+    def test(self, selftest):
         result = False
-        c = self.mbed.serial_readline()
+        c = selftest.mbed.serial_readline()
         if c is None:
-            self.print_result("ioerr_serial")
-            return
-        print c
-        stdout.flush()
+            return selftest.RESULT_IO_SERIAL
+        selftest.notify(c)
 
         m = self.re_detect_server_ip.search(c)
         if m and len(m.groups()):
             self.ECHO_SERVER_ADDRESS = ".".join(m.groups()[:4])
             self.ECHO_PORT = int(m.groups()[4]) # must be integer for socket.connect method
-            print "HOST: TCP Server found at: " + self.ECHO_SERVER_ADDRESS + ":" + str(self.ECHO_PORT)
-            stdout.flush()
+            selftest.notify("HOST: TCP Server found at: " + self.ECHO_SERVER_ADDRESS + ":" + str(self.ECHO_PORT))
 
             # We assume this test fails so can't send 'error' message to server
             try:
@@ -54,15 +49,20 @@ class TCPEchoServerTest(DefaultTest):
                 self.s.connect((self.ECHO_SERVER_ADDRESS, self.ECHO_PORT))
             except Exception, e:
                 self.s = None
-                print "HOST: Error: %s" % e
-                self.print_result('error')
-                exit(-1)
+                selftest.notify("HOST: Socket error: %s"% e)
+                return selftest.RESULT_ERROR
 
             print 'HOST: Sending %d echo strings...'% self.ECHO_LOOPs,
             for i in range(0, self.ECHO_LOOPs):
                 TEST_STRING = str(uuid.uuid4())
-                self.s.sendall(TEST_STRING)
-                data = self.s.recv(128)
+                try:
+                    self.s.sendall(TEST_STRING)
+                    data = self.s.recv(128)
+                except Exception, e:
+                    self.s = None
+                    selftest.notify("HOST: Socket error: %s"% e)
+                    return selftest.RESULT_ERROR
+
                 received_str = repr(data)[1:-1]
                 if TEST_STRING == received_str: # We need to cut not needed single quotes from the string
                     sys.stdout.write('.')
@@ -79,25 +79,6 @@ class TCPEchoServerTest(DefaultTest):
             if self.s is not None:
                 self.s.close()
         else:
-            print "HOST: TCP Server not found"
+            selftest.notify("HOST: TCP Server not found")
             result = False
-
-        if result:
-            self.print_result('success')
-        else:
-            self.print_result('failure')
-
-        # Receiving
-        try:
-            while True:
-                c = self.mbed.serial_read(512)
-                if c is None:
-                    self.print_result("ioerr_serial")
-                    break
-                stdout.write(c)
-                stdout.flush()
-        except KeyboardInterrupt, _:
-            print "\n[CTRL+c] exit"
-
-if __name__ == '__main__':
-    TCPEchoServerTest().run()
+        return selftest.RESULT_SUCCESS if result else selftest.RESULT_FAILURE

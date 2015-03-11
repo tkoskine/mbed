@@ -8,8 +8,12 @@ namespace {
     const int BUFFER_SIZE = 512;
 }
 
-int main()
-{
+int main() {
+    MBED_HOSTTEST_TIMEOUT(15);
+    MBED_HOSTTEST_SELECT(default_auto);
+    MBED_HOSTTEST_DESCRIPTION(HTTP client hello world);
+    MBED_HOSTTEST_START("NET_7");
+
     char http_request_buffer[BUFFER_SIZE + 1] = {0};
     HTTPClient http;
     EthernetInterface eth;
@@ -19,7 +23,7 @@ int main()
     //GET data
     {
         bool result = true;
-        const char *url_hello_txt = "http://mbed.org/media/uploads/donatien/hello.txt";
+        const char *url_hello_txt = "http://developer.mbed.org/media/uploads/donatien/hello.txt";
         printf("HTTP_GET: Trying to fetch page '%s'...\r\n", url_hello_txt);
         HTTPResult ret = http.get(url_hello_txt, http_request_buffer, BUFFER_SIZE);
         if (ret == HTTP_OK) {
@@ -31,8 +35,7 @@ int main()
 
         if (result == false) {
             eth.disconnect();
-            notify_completion(false);
-            exit(ret);
+            MBED_HOSTTEST_RESULT(false);
         }
     }
 
@@ -56,11 +59,9 @@ int main()
 
         if (result == false) {
             eth.disconnect();
-            notify_completion(false);
-            exit(ret);
+            MBED_HOSTTEST_RESULT(false);
         }
     }
     eth.disconnect();
-    notify_completion(true);
-    return 0;
+    MBED_HOSTTEST_RESULT(true);
 }

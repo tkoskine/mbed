@@ -15,56 +15,41 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from host_test import DefaultTest
-from sys import stdout
 import re
 
-class DetectPlatformTest(DefaultTest):
+class DetectPlatformTest():
     PATTERN_MICRO_NAME = "Target '(\w+)'"
     re_detect_micro_name = re.compile(PATTERN_MICRO_NAME)
 
-    def run(self):
+    def test(self, selftest):
         result = True
 
-        c = self.mbed.serial_readline() # {{start}} preamble
+        c = selftest.mbed.serial_readline() # {{start}} preamble
         if c is None:
-           self.print_result("ioerr_serial")
-           return
-        print c.strip()
-        stdout.flush()
+           return selftest.RESULT_IO_SERIAL
 
-        print "HOST: Detecting target name..."
-        stdout.flush()
+        selftest.notify(c.strip())
+        selftest.notify("HOST: Detecting target name...")
 
-        c = self.mbed.serial_readline()
+        c = selftest.mbed.serial_readline()
         if c is None:
-           self.print_result("ioerr_serial")
-           return
-        print c.strip()
-        stdout.flush()
+            return selftest.RESULT_IO_SERIAL
+        selftest.notify(c.strip())
 
         # Check for target name
         m = self.re_detect_micro_name.search(c)
         if m and len(m.groups()):
             micro_name = m.groups()[0]
-            micro_cmp = self.mbed.options.micro == micro_name
+            micro_cmp = selftest.mbed.options.micro == micro_name
             result = result and micro_cmp
-            print "HOST: MUT Target name '%s', expected '%s'... [%s]"% (micro_name, self.mbed.options.micro, "OK" if micro_cmp else "FAIL")
-            stdout.flush()
+            selftest.notify("HOST: MUT Target name '%s', expected '%s'... [%s]"% (micro_name,
+                selftest.mbed.options.micro,
+                "OK" if micro_cmp else "FAIL"))
 
         for i in range(0, 2):
-            c = self.mbed.serial_readline()
+            c = selftest.mbed.serial_readline()
             if c is None:
-               self.print_result("ioerr_serial")
-               return
-            print c.strip()
-            stdout.flush()
+               return selftest.RESULT_IO_SERIAL
+            selftest.notify(c.strip())
 
-        if result: # Hello World received
-            self.print_result('success')
-        else:
-            self.print_result('failure')
-        stdout.flush()
-
-if __name__ == '__main__':
-    DetectPlatformTest().run()
+        return selftest.RESULT_SUCCESS if result else selftest.RESULT_FAILURE

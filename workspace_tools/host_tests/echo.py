@@ -14,47 +14,46 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import sys
 import uuid
 from sys import stdout
-from host_test import Test
 
+class EchoTest():
 
-class EchoTest(Test):
-    def __init__(self):
-        Test.__init__(self)
-        self.mbed.init_serial(115200)
-        self.mbed.reset()
-        self.TEST_LOOP_COUNT = 50
+    # Test parameters
+    TEST_SERIAL_BAUDRATE = 115200
+    TEST_LOOP_COUNT = 50
 
-    def test(self):
-        """ Test function, return True or False to get standard test notification on stdout
+    def test(self, selftest):
+        """ This host test will use mbed serial port with
+            baudrate 115200 to perform echo test on that port.
         """
-        c = self.mbed.serial_readline() # '{{start}}'
-        if c is None:
-            self.print_result("ioerr_serial")
-            return
-        print c.strip()
-        stdout.flush()
+        # Custom initialization for echo test
+        selftest.mbed.init_serial_params(serial_baud=self.TEST_SERIAL_BAUDRATE)
+        selftest.mbed.init_serial()
 
-        self.mbed.flush()
-        self.notify("HOST: Starting the ECHO test")
+        # Test function, return True or False to get standard test notification on stdout
+        selftest.mbed.flush()
+        selftest.notify("HOST: Starting the ECHO test")
         result = True
+        
+        """ This ensures that there are no parasites left in the serial buffer.
+        """
+        for i in range(0, 2):
+            selftest.mbed.serial_write("\n")
+            c = selftest.mbed.serial_readline()
+            
         for i in range(0, self.TEST_LOOP_COUNT):
-            TEST = str(uuid.uuid4()) + "\n"
-            self.mbed.serial_write(TEST)
-            c = self.mbed.serial_readline()
+            TEST_STRING = str(uuid.uuid4()) + "\n"
+            selftest.mbed.serial_write(TEST_STRING)
+            c = selftest.mbed.serial_readline()
             if c is None:
-                self.print_result("ioerr_serial")
-                return
-            if c.strip() != TEST.strip():
-                self.notify('HOST: "%s" != "%s"'% (c, TEST))
+                return selftest.RESULT_IO_SERIAL
+            if c.strip() != TEST_STRING.strip():
+                selftest.notify('HOST: "%s" != "%s"'% (c, TEST_STRING))
                 result = False
             else:
                 sys.stdout.write('.')
                 stdout.flush()
-        return result
-
-
-if __name__ == '__main__':
-    EchoTest().run()
+        return selftest.RESULT_SUCCESS if result else selftest.RESULT_FAILURE

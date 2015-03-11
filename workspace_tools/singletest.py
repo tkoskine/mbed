@@ -47,34 +47,23 @@ File format example: muts_all.json:
 """
 
 
-# Check if 'prettytable' module is installed
-try:
-    from prettytable import PrettyTable
-except ImportError, e:
-    print "Error: Can't import 'prettytable' module: %s"% e
-    exit(-1)
-
-# Check if 'serial' module is installed
-try:
-    from serial import Serial
-except ImportError, e:
-    print "Error: Can't import 'serial' module: %s"% e
-    exit(-1)
-
+# Be sure that the tools directory is in the search path
 import sys
 from os.path import join, abspath, dirname
 
-# Be sure that the tools directory is in the search path
 ROOT = abspath(join(dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
+
+
+# Check: Extra modules which are required by core test suite
+from workspace_tools.utils import check_required_modules
+check_required_modules(['prettytable', 'serial'])
 
 # Imports related to mbed build api
 from workspace_tools.build_api import mcu_toolchain_matrix
 
 # Imports from TEST API
-from workspace_tools.test_api import BaseDBAccess
 from workspace_tools.test_api import SingleTestRunner
-from workspace_tools.test_api import factory_db_logger
 from workspace_tools.test_api import singletest_in_cli_mode
 from workspace_tools.test_api import detect_database_verbose
 from workspace_tools.test_api import get_json_data_from_file
@@ -82,7 +71,15 @@ from workspace_tools.test_api import get_avail_tests_summary_table
 from workspace_tools.test_api import get_default_test_options_parser
 from workspace_tools.test_api import print_muts_configuration_from_json
 from workspace_tools.test_api import print_test_configuration_from_json
+from workspace_tools.test_api import get_autodetected_MUTS
+from workspace_tools.test_api import get_autodetected_TEST_SPEC
+from workspace_tools.test_api import get_module_avail
 
+# Importing extra modules which can be not installed but if available they can extend test suite functionality
+try:
+    import mbed_lstools
+except:
+    pass
 
 def get_version():
     """ Returns test script version
@@ -108,19 +105,28 @@ if __name__ == '__main__':
         print "Version %d.%d"% get_version()
         exit(0)
 
-    # Print summary / information about automation test status
-    if opts.test_automation_report:
-        print get_avail_tests_summary_table()
-        exit(0)
-
     if opts.db_url and opts.verbose_test_configuration_only:
         detect_database_verbose(opts.db_url)
         exit(0)
 
     # Print summary / information about automation test status
+    if opts.test_automation_report:
+        print get_avail_tests_summary_table(platform_filter=opts.general_filter_regex)
+        exit(0)
+
+    # Print summary / information about automation test status
     if opts.test_case_report:
-        test_case_report_cols = ['id', 'automated', 'description', 'peripherals', 'host_test', 'duration', 'source_dir']
-        print get_avail_tests_summary_table(cols=test_case_report_cols, result_summary=False, join_delim='\n')
+        test_case_report_cols = ['id',
+                                 'automated',
+                                 'description',
+                                 'peripherals',
+                                 'host_test',
+                                 'duration',
+                                 'source_dir']
+        print get_avail_tests_summary_table(cols=test_case_report_cols,
+                                            result_summary=False,
+                                            join_delim='\n',
+                                            platform_filter=opts.general_filter_regex)
         exit(0)
 
     # Only prints matrix of supported toolchains
@@ -128,32 +134,60 @@ if __name__ == '__main__':
         print mcu_toolchain_matrix(platform_filter=opts.general_filter_regex)
         exit(0)
 
-    # Open file with test specification
-    # test_spec_filename tells script which targets and their toolchain(s)
-    # should be covered by the test scenario
-    test_spec = get_json_data_from_file(opts.test_spec_filename) if opts.test_spec_filename else None
-    if test_spec is None:
-        if not opts.test_spec_filename:
-            parser.print_help()
-        exit(-1)
+    test_spec = None
+    MUTs = None
 
-    # Get extra MUTs if applicable
-    MUTs = get_json_data_from_file(opts.muts_spec_filename) if opts.muts_spec_filename else None
+    if hasattr(opts, 'auto_detect') and opts.auto_detect:
+        # If auto_detect attribute is present, we assume other auto-detection
+        # parameters like 'toolchains_filter' are also set.
+        print "MBEDLS: Detecting connected mbed-enabled devices... "
 
-    if MUTs is None:
-        if not opts.muts_spec_filename:
-            parser.print_help()
-        exit(-1)
+        if get_module_avail('mbed_lstools'):
+            mbeds = mbed_lstools.create()
+            muts_list = mbeds.list_mbeds()
+            for mut in muts_list:
+                print "MBEDLS: Detected %s, port: %s, mounted: %s"% (mut['platform_name'],
+                                        mut['serial_port'],
+                                        mut['mount_point'])
 
-    # Only prints read MUTs configuration
-    if MUTs and opts.verbose_test_configuration_only:
-        print "MUTs configuration in %s:"% opts.muts_spec_filename
-        print print_muts_configuration_from_json(MUTs)
+        # Set up parameters for test specification filter function (we need to set toolchains per target here)
+        use_default_toolchain = 'default' in opts.toolchains_filter.split(',') if opts.toolchains_filter is not None else True
+        use_supported_toolchains = 'all' in opts.toolchains_filter.split(',') if opts.toolchains_filter is not None else False
+        toolchain_filter = opts.toolchains_filter
+        # Test specification with information about each target and associated toolchain
+        test_spec = get_autodetected_TEST_SPEC(muts_list,
+                                               use_default_toolchain=use_default_toolchain,
+                                               use_supported_toolchains=use_supported_toolchains,
+                                               toolchain_filter=toolchain_filter)
+        # MUTs configuration auto-detection
+        MUTs = get_autodetected_MUTS(muts_list)
+    else:
+        # Open file with test specification
+        # test_spec_filename tells script which targets and their toolchain(s)
+        # should be covered by the test scenario
+        test_spec = get_json_data_from_file(opts.test_spec_filename) if opts.test_spec_filename else None
+        if test_spec is None:
+            if not opts.test_spec_filename:
+                parser.print_help()
+            exit(-1)
+
+        # Get extra MUTs if applicable
+        MUTs = get_json_data_from_file(opts.muts_spec_filename) if opts.muts_spec_filename else None
+
+        if MUTs is None:
+            if not opts.muts_spec_filename:
+                parser.print_help()
+            exit(-1)
+
+    if opts.verbose_test_configuration_only:
+        print "MUTs configuration in %s:"% ('auto-detected' if opts.auto_detect else opts.muts_spec_filename)
+        if MUTs:
+            print print_muts_configuration_from_json(MUTs, platform_filter=opts.general_filter_regex)
         print
-        print "Test specification in %s:"% opts.test_spec_filename
-        print print_test_configuration_from_json(test_spec)
+        print "Test specification in %s:"% ('auto-detected' if opts.auto_detect else opts.test_spec_filename)
+        if test_spec:
+            print print_test_configuration_from_json(test_spec)
         exit(0)
-
 
     # Verbose test specification and MUTs configuration
     if MUTs and opts.verbose:
@@ -172,12 +206,14 @@ if __name__ == '__main__':
                                    _opts_db_url=opts.db_url,
                                    _opts_log_file_name=opts.log_file_name,
                                    _opts_report_html_file_name=opts.report_html_file_name,
+                                   _opts_report_junit_file_name=opts.report_junit_file_name,
                                    _test_spec=test_spec,
                                    _opts_goanna_for_mbed_sdk=opts.goanna_for_mbed_sdk,
                                    _opts_goanna_for_tests=opts.goanna_for_tests,
                                    _opts_shuffle_test_order=opts.shuffle_test_order,
                                    _opts_shuffle_test_seed=opts.shuffle_test_seed,
                                    _opts_test_by_names=opts.test_by_names,
+                                   _opts_peripheral_by_names=opts.peripheral_by_names,
                                    _opts_test_only_peripheral=opts.test_only_peripheral,
                                    _opts_test_only_common=opts.test_only_common,
                                    _opts_verbose_skipped_tests=opts.verbose_skipped_tests,

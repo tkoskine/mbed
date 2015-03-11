@@ -35,32 +35,11 @@
 #include "cmsis.h"
 #include "pinmap.h"
 #include <string.h>
+#include "PeripheralPins.h"
 
-static const PinMap PinMap_UART_TX[] = {
-    {PA_2,  UART_2,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_USART2)},
-    {PA_9,  UART_1,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_USART1)},
-    {PA_14, UART_2,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_USART2)}, // Warning: this pin is used by SWCLK
-    {PB_6,  UART_1,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF0_USART1)},
-    {PB_10, LPUART_1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_LPUART1)},
-    {PC_4,  LPUART_1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF2_LPUART1)},
-    {PC_10, LPUART_1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF0_LPUART1)},
-    {NC,    NC,       0}
-};
+#define UART_NUM (5)
 
-static const PinMap PinMap_UART_RX[] = {
-    {PA_3,  UART_2,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_USART2)},
-    {PA_10, UART_1,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_USART1)},
-    {PA_15, UART_2,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_USART2)},
-    {PB_7,  UART_1,   STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF0_USART1)},
-    {PB_11, LPUART_1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF4_LPUART1)},
-    {PC_5,  LPUART_1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF2_LPUART1)},
-    {PC_11, LPUART_1, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_PULLUP, GPIO_AF0_LPUART1)},
-    {NC,    NC,      0}
-};
-
-#define UART_NUM (3)
-
-static uint32_t serial_irq_ids[UART_NUM] = {0, 0, 0};
+static uint32_t serial_irq_ids[UART_NUM] = {0, 0, 0, 0, 0};
 
 static uart_irq_handler irq_handler;
 
@@ -69,10 +48,10 @@ UART_HandleTypeDef UartHandle;
 int stdio_uart_inited = 0;
 serial_t stdio_uart;
 
-static void init_uart(serial_t *obj) {
+static void init_uart(serial_t *obj)
+{
     UartHandle.Instance = (USART_TypeDef *)(obj->uart);
 
-    // [TODO] Workaround to be removed after HAL driver is corrected
     if (obj->uart == LPUART_1) {
         UartHandle.Init.BaudRate = obj->baudrate >> 1;
     } else {
@@ -94,11 +73,12 @@ static void init_uart(serial_t *obj) {
     // Disable the reception overrun detection
     UartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
     UartHandle.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
-    
+
     HAL_UART_Init(&UartHandle);
 }
 
-void serial_init(serial_t *obj, PinName tx, PinName rx) {
+void serial_init(serial_t *obj, PinName tx, PinName rx)
+{
     // Determine the UART to use (UART_1, UART_2, ...)
     UARTName uart_tx = (UARTName)pinmap_peripheral(tx, PinMap_UART_TX);
     UARTName uart_rx = (UARTName)pinmap_peripheral(rx, PinMap_UART_RX);
@@ -109,19 +89,33 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
 
     // Enable UART clock
     if (obj->uart == UART_1) {
-        __USART1_CLK_ENABLE();
+        __HAL_RCC_USART1_CLK_ENABLE();
         obj->index = 0;
     }
 
     if (obj->uart == UART_2) {
-        __USART2_CLK_ENABLE();
+        __HAL_RCC_USART2_CLK_ENABLE();
         obj->index = 1;
     }
 
     if (obj->uart == LPUART_1) {
-        __LPUART1_CLK_ENABLE();
+        __HAL_RCC_LPUART1_CLK_ENABLE();
         obj->index = 2;
     }
+
+#if defined(USART4_BASE)
+    if (obj->uart == UART_4) {
+        __HAL_RCC_USART4_CLK_ENABLE();
+        obj->index = 3;
+    }
+#endif
+
+#if defined(USART5_BASE)
+    if (obj->uart == UART_5) {
+        __HAL_RCC_USART5_CLK_ENABLE();
+        obj->index = 4;
+    }
+#endif
 
     // Configure the UART pins
     pinmap_pinout(tx, PinMap_UART_TX);
@@ -150,25 +144,42 @@ void serial_init(serial_t *obj, PinName tx, PinName rx) {
     }
 }
 
-void serial_free(serial_t *obj) {
+void serial_free(serial_t *obj)
+{
     // Reset UART and disable clock
     if (obj->uart == UART_1) {
-        __USART1_FORCE_RESET();
-        __USART1_RELEASE_RESET();
-        __USART1_CLK_DISABLE();
+        __HAL_RCC_USART1_FORCE_RESET();
+        __HAL_RCC_USART1_RELEASE_RESET();
+        __HAL_RCC_USART1_CLK_DISABLE();
     }
 
     if (obj->uart == UART_2) {
-        __USART2_FORCE_RESET();
-        __USART2_RELEASE_RESET();
-        __USART2_CLK_DISABLE();
+        __HAL_RCC_USART2_FORCE_RESET();
+        __HAL_RCC_USART2_RELEASE_RESET();
+        __HAL_RCC_USART2_CLK_DISABLE();
     }
 
     if (obj->uart == LPUART_1) {
-        __LPUART1_FORCE_RESET();
-        __LPUART1_RELEASE_RESET();
-        __LPUART1_CLK_DISABLE();
+        __HAL_RCC_LPUART1_FORCE_RESET();
+        __HAL_RCC_LPUART1_RELEASE_RESET();
+        __HAL_RCC_LPUART1_CLK_DISABLE();
     }
+
+#if defined(USART4_BASE)
+    if (obj->uart == UART_4) {
+        __HAL_RCC_USART4_FORCE_RESET();
+        __HAL_RCC_USART4_RELEASE_RESET();
+        __HAL_RCC_USART4_CLK_DISABLE();
+    }
+#endif
+
+#if defined(USART5_BASE)
+    if (obj->uart == UART_5) {
+        __HAL_RCC_USART5_FORCE_RESET();
+        __HAL_RCC_USART5_RELEASE_RESET();
+        __HAL_RCC_USART5_CLK_DISABLE();
+    }
+#endif
 
     // Configure GPIOs
     pin_function(obj->pin_tx, STM_PIN_DATA(STM_MODE_INPUT, GPIO_NOPULL, 0));
@@ -177,12 +188,14 @@ void serial_free(serial_t *obj) {
     serial_irq_ids[obj->index] = 0;
 }
 
-void serial_baud(serial_t *obj, int baudrate) {
+void serial_baud(serial_t *obj, int baudrate)
+{
     obj->baudrate = baudrate;
     init_uart(obj);
 }
 
-void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_bits) {
+void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_bits)
+{
     if (data_bits == 9) {
         obj->databits = UART_WORDLENGTH_9B;
     } else {
@@ -216,7 +229,8 @@ void serial_format(serial_t *obj, int data_bits, SerialParity parity, int stop_b
  * INTERRUPTS HANDLING
  ******************************************************************************/
 
-static void uart_irq(UARTName name, int id) {
+static void uart_irq(UARTName name, int id)
+{
     UartHandle.Instance = (USART_TypeDef *)name;
     if (serial_irq_ids[id] != 0) {
         if (__HAL_UART_GET_FLAG(&UartHandle, UART_FLAG_TC) != RESET) {
@@ -230,24 +244,43 @@ static void uart_irq(UARTName name, int id) {
     }
 }
 
-static void uart1_irq(void) {
+static void uart1_irq(void)
+{
     uart_irq(UART_1, 0);
 }
 
-static void uart2_irq(void) {
+static void uart2_irq(void)
+{
     uart_irq(UART_2, 1);
 }
 
-static void lpuart1_irq(void) {
+static void lpuart1_irq(void)
+{
     uart_irq(LPUART_1, 2);
 }
 
-void serial_irq_handler(serial_t *obj, uart_irq_handler handler, uint32_t id) {
+#if defined(USART4_BASE)
+static void uart4_irq(void)
+{
+    uart_irq(UART_4, 3);
+}
+#endif
+
+#if defined(USART5_BASE)
+static void uart5_irq(void)
+{
+    uart_irq(UART_5, 4);
+}
+#endif
+
+void serial_irq_handler(serial_t *obj, uart_irq_handler handler, uint32_t id)
+{
     irq_handler = handler;
     serial_irq_ids[obj->index] = id;
 }
 
-void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
+void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable)
+{
     IRQn_Type irq_n = (IRQn_Type)0;
     uint32_t vector = 0;
 
@@ -267,6 +300,20 @@ void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
         irq_n = RNG_LPUART1_IRQn;
         vector = (uint32_t)&lpuart1_irq;
     }
+
+#if defined(USART4_BASE)
+    if (obj->uart == UART_4) {
+        irq_n = USART4_5_IRQn;
+        vector = (uint32_t)&uart4_irq;
+    }
+#endif
+
+#if defined(USART5_BASE)
+    if (obj->uart == UART_5) {
+        irq_n = USART4_5_IRQn;
+        vector = (uint32_t)&uart5_irq;
+    }
+#endif
 
     if (enable) {
 
@@ -302,19 +349,22 @@ void serial_irq_set(serial_t *obj, SerialIrq irq, uint32_t enable) {
  * READ/WRITE
  ******************************************************************************/
 
-int serial_getc(serial_t *obj) {
+int serial_getc(serial_t *obj)
+{
     USART_TypeDef *uart = (USART_TypeDef *)(obj->uart);
     while (!serial_readable(obj));
     return (int)(uart->RDR & (uint32_t)0xFF);
 }
 
-void serial_putc(serial_t *obj, int c) {
+void serial_putc(serial_t *obj, int c)
+{
     USART_TypeDef *uart = (USART_TypeDef *)(obj->uart);
     while (!serial_writable(obj));
     uart->TDR = (uint32_t)(c & (uint32_t)0xFF);
 }
 
-int serial_readable(serial_t *obj) {
+int serial_readable(serial_t *obj)
+{
     int status;
     UartHandle.Instance = (USART_TypeDef *)(obj->uart);
     // Check if data is received
@@ -322,7 +372,8 @@ int serial_readable(serial_t *obj) {
     return status;
 }
 
-int serial_writable(serial_t *obj) {
+int serial_writable(serial_t *obj)
+{
     int status;
     UartHandle.Instance = (USART_TypeDef *)(obj->uart);
     // Check if data is transmitted
@@ -330,22 +381,26 @@ int serial_writable(serial_t *obj) {
     return status;
 }
 
-void serial_clear(serial_t *obj) {
+void serial_clear(serial_t *obj)
+{
     UartHandle.Instance = (USART_TypeDef *)(obj->uart);
     __HAL_UART_CLEAR_IT(&UartHandle, UART_CLEAR_TCF);
     __HAL_UART_SEND_REQ(&UartHandle, UART_RXDATA_FLUSH_REQUEST);
 }
 
-void serial_pinout_tx(PinName tx) {
+void serial_pinout_tx(PinName tx)
+{
     pinmap_pinout(tx, PinMap_UART_TX);
 }
 
-void serial_break_set(serial_t *obj) {
+void serial_break_set(serial_t *obj)
+{
     UartHandle.Instance = (USART_TypeDef *)(obj->uart);
     __HAL_UART_SEND_REQ(&UartHandle, UART_SENDBREAK_REQUEST);
 }
 
-void serial_break_clear(serial_t *obj) {
+void serial_break_clear(serial_t *obj)
+{
 }
 
 #endif

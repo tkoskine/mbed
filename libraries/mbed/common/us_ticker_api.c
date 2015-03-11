@@ -70,7 +70,7 @@ void us_ticker_insert_event(ticker_event_t *obj, timestamp_t timestamp, uint32_t
     ticker_event_t *prev = NULL, *p = head;
     while (p != NULL) {
         /* check if we come before p */
-        if ((int)(timestamp - p->timestamp) <= 0) {
+        if ((int)(timestamp - p->timestamp) < 0) {
             break;
         }
         /* go to the next element */
@@ -115,4 +115,18 @@ void us_ticker_remove_event(ticker_event_t *obj) {
     }
 
     __enable_irq();
+}
+
+int us_ticker_get_next_timestamp(timestamp_t *timestamp) {
+    int ret = 0;
+
+    /* if head is NULL, there are no pending events */
+    __disable_irq();
+    if (head != NULL) {
+        *timestamp = head->timestamp;
+        ret = 1;
+    }
+    __enable_irq();
+
+    return ret;
 }
