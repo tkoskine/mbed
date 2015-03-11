@@ -39,8 +39,8 @@ void gpio_init(gpio_t *obj, PinName pin) {
     
     GPIO_TypeDef *port_reg = (GPIO_TypeDef *) (GPIOA_BASE + (port_index << 10));
     obj->reg_mode = &port_reg->MODER;
-    obj->reg_set = &port_reg->BSRRL;
-    obj->reg_clr = &port_reg->BSRRH;
+    obj->reg_set = &port_reg->BSRR;
+    obj->reg_clr = (&port_reg->BSRR) + 2;
     obj->reg_in  = &port_reg->IDR;
 }
 

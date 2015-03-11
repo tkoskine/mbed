@@ -512,7 +512,7 @@ extern "C" void mbed_exit(int return_code) {
 extern "C" void _exit(int return_code) {
 #else
 namespace std {
-extern "C" void exit(int return_code) {
+extern "C" void mbed_exit(int return_code) {
 #endif
 
 #if DEVICE_STDIO_MESSAGES
@@ -529,6 +529,7 @@ extern "C" void exit(int return_code) {
         mbed_die();
     }
 
+    exit(return_code);
     while (1);
 }
 
